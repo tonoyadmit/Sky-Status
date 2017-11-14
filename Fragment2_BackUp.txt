@@ -1,0 +1,127 @@
+package in.digitechlab.skystatus;
+
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class FragmentTwo extends Fragment {
+
+    private static final String BASE_URL = "http://api.openweathermap.org/data/2.5/";
+    String city_name = "London";
+    TextView forecast_details;
+    private RecyclerView wRecyclerView;
+    private WeatherAdapter wAdapter;
+    private Weather_Forecast_Model weather_forecast_model;
+    private WeatherForecastAPI weatherForecastAPI;
+    private ArrayList<Weather_Forecast_Model> ForecastList;
+
+
+    public FragmentTwo() {
+        // Required empty public constructor
+    }
+
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_fragment_two, container, false);
+
+        forecast_details = (TextView) view.findViewById(R.id.forecast_details);
+
+        wRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_forecast);
+
+        //wRecyclerView.setLayoutManager(new CustomLinearLayoutManager(getActivity(),
+                //LinearLayoutManager.VERTICAL, false));
+        //wAdapter = new WeatherAdapter(getActivity());
+        //wRecyclerView.setAdapter(wAdapter);
+
+        LinearLayoutManager llm = new LinearLayoutManager(getActivity());
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        wRecyclerView.setLayoutManager(llm);
+        wAdapter = new WeatherAdapter(getActivity());
+        wRecyclerView.setAdapter(wAdapter);
+        ForecastList = new ArrayList<Weather_Forecast_Model>();
+
+/*        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));
+        ForecastList.add(new Weather_Forecast_Model("23", "33", "78%","Very Coudy", "Cloud & Rain", 8, "88kph", "12-12-1990"));*/
+        initializeNetworkLibrary();
+
+        getWeatherResponse();
+
+        return view;
+
+    }
+
+    private void getWeatherResponse() {
+
+        String urlString = String.format("forecast?q=%s&units=metric&APPID=%s",city_name, BuildConfig.WEATHER_API_KEY);
+
+        Call<Weather_Forecast_Model> skyServiceAPICall = weatherForecastAPI.getWeatherReport(urlString);
+
+        skyServiceAPICall.enqueue(new Callback<Weather_Forecast_Model>() {
+            @Override
+            public void onResponse(Call<Weather_Forecast_Model> call, Response<Weather_Forecast_Model> response) {
+                if(response.code()==200){
+                    Weather_Forecast_Model responses = response.body();
+
+                    forecast_details.setText("FORCAST: "+response.code() );
+
+                    //wAdapter.setForecastList((List<Weather_Forecast_Model>) responses.getList());
+
+                    Toast.makeText(getActivity(), "Results "+response.code(), Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(getActivity(), "Results : "+response.code(), Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Weather_Forecast_Model> call, Throwable t) {
+                Toast.makeText(getActivity(), "Nothing Found ", Toast.LENGTH_LONG).show();
+
+            }
+        });
+
+    }
+
+    private void initializeNetworkLibrary() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+
+        weatherForecastAPI = retrofit.create(WeatherForecastAPI.class);
+
+    }
+
+}
